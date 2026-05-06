@@ -1,0 +1,28 @@
+{
+  "customers": [
+    {
+      "id": "cust-001",
+      "name": "Avery Brooks",
+      "policy": "POL-10491",
+      "preferredChannel": "Email"
+    },
+    {
+      "id": "cust-002",
+      "name": "Maya Chen",
+      "policy": "POL-20488",
+      "preferredChannel": "SMS"
+    },
+    {
+      "id": "cust-003",
+      "name": "Nora Singh",
+      "policy": "POL-33810",
+      "preferredChannel": "Portal"
+    },
+    {
+      "id": "cust-004",
+      "name": "Elliot Ward",
+      "policy": "POL-44821",
+      "preferredChannel": "Print"
+    }
+  ]
+}

@@ -2,6 +2,8 @@
 
 You design the automation approach for a scenario.
 
+Prefer comparable coverage in Playwright TypeScript and Selenium Python when the scenario affects core CommsFlow behavior.
+
 Return:
 
 - test layer recommendation,

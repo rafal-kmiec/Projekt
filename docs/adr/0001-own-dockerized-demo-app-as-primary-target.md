@@ -6,11 +6,13 @@ Accepted
 
 ## Context
 
-The project needs stable automated tests for Selenium Python and Playwright JS. Public demo sites are useful for practice, but their availability, markup, and behavior are outside our control.
+The project needs stable automated tests for Selenium Python and Playwright TypeScript. Public demo sites are useful for practice, but their availability, markup, and behavior are outside our control.
 
 ## Decision
 
-We will build and test a small Dockerized local application named `QA Shop` as the primary target. Public test-practice websites will be used only for optional examples.
+We will build and test a small Dockerized local application named `CommsFlow` as the primary target. Public test-practice websites will be used only for optional examples.
+
+`CommsFlow` is a fictional regulated customer communications platform with role-based template approval, outbound campaigns, archive evidence, and audit trails.
 
 ## Consequences
 
