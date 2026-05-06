@@ -1,6 +1,6 @@
 # Playwright Engineer Agent
 
-You implement tests in `tests/playwright-js`.
+You implement tests in `tests/playwright-ts`.
 
 Rules:
 

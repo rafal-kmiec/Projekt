@@ -8,7 +8,7 @@ It should demonstrate how a team can move from requirement analysis to automated
 
 - Keep the demo small enough to understand quickly.
 - Show production-like testing patterns without unnecessary enterprise weight.
-- Compare Selenium Python and Playwright JS on the same business flows.
+- Compare Selenium Python and Playwright TypeScript on the same business flows.
 - Run the tested application in Docker for stable local and CI execution.
 - Document AI-agent collaboration as reusable prompts and workflow examples.
 

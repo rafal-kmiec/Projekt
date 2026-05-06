@@ -1,12 +1,26 @@
 # Tested Application Choice
 
-The primary tested application will be a local Dockerized demo app called `QA Shop`.
+The primary tested application is a local Dockerized demo app called `CommsFlow`.
+
+`CommsFlow` is a fictional regulated customer communications platform. It is inspired by the enterprise domain of critical customer communication management, but it does not copy any real product.
+
+## Why This Domain
+
+A regulated communications platform gives richer automation scenarios than a generic shop:
+
+- role-based access,
+- approval workflows,
+- multi-channel delivery,
+- customer preferences,
+- audit trails,
+- archive records,
+- compliance-focused dashboards.
 
 ## Why Own Demo App
 
 - Stable UI and selectors for CI.
-- Full control over users, products, orders, and reset state.
-- Ability to create test-specific scenarios such as locked users, validation errors, slow responses, and empty states.
+- Full control over users, customers, templates, campaigns, and reset state.
+- Ability to create test-specific scenarios such as invalid credentials, pending approvals, missing approved templates, and archive search.
 - Same target can be tested by Selenium Python and Playwright JS.
 
 ## Why Docker

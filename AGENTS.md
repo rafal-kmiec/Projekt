@@ -4,7 +4,7 @@
 
 This repository is a QA automation showcase project. It demonstrates how AI agents can support test automation work from product analysis through implementation, review, CI feedback, and iteration.
 
-The tested product is evolving from the initial `QA Shop` skeleton into `CommsFlow`: a demo platform inspired by regulated customer communication management systems. The product should not copy any real vendor. It should model the same kind of enterprise domain: critical customer communications, template approval, channel preferences, outbound campaigns, inbound messages, audit trails, archive search, and compliance-focused reporting.
+The tested product has evolved from the initial shop-style skeleton into `CommsFlow`: a demo platform inspired by regulated customer communication management systems. The product should not copy any real vendor. It should model the same kind of enterprise domain: critical customer communications, template approval, channel preferences, outbound campaigns, inbound messages, audit trails, archive search, and compliance-focused reporting.
 
 The project lives at:
 
@@ -51,7 +51,7 @@ The repository combines:
 
 - Dockerized demo web app in `demo-app`.
 - Python Selenium tests with pytest in `tests/selenium-python`.
-- JavaScript/TypeScript Playwright tests in `tests/playwright-js`.
+- TypeScript Playwright tests in `tests/playwright-ts`.
 - Optional external-site examples in `tests/external-sites`.
 - Shared test data and selector contracts in `shared`.
 - AI-agent prompts and workflow examples in `prompts`.
@@ -125,8 +125,7 @@ This repository should demonstrate a supervised AI-assisted QA workflow:
 - Analyst Agent: turns business requirements into scenarios and risks.
 - Test Architect Agent: defines coverage, fixtures, and test boundaries.
 - Selenium Engineer Agent: implements Python Selenium tests.
-- Playwright Engineer Agent: implements Playwright tests.
+- Playwright Engineer Agent: implements TypeScript Playwright tests.
 - Reviewer Agent: checks stability, assertions, naming, and maintainability.
 
 AI-generated output should be reviewed like any other code contribution.
-

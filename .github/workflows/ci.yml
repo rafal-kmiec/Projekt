@@ -15,10 +15,10 @@ jobs:
         with:
           node-version: 22
       - name: Install Playwright dependencies
-        working-directory: tests/playwright-js
+        working-directory: tests/playwright-ts
         run: npm install
       - name: Install Playwright browsers
-        working-directory: tests/playwright-js
+        working-directory: tests/playwright-ts
         run: npx playwright install --with-deps chromium
       - name: Start demo app container
         run: docker compose up --build -d demo-app
@@ -31,7 +31,7 @@ jobs:
           docker compose logs demo-app
           exit 1
       - name: Run Playwright smoke tests
-        working-directory: tests/playwright-js
+        working-directory: tests/playwright-ts
         env:
           DEMO_APP_BASE_URL: http://127.0.0.1:5173
         run: npm run test:smoke
@@ -68,4 +68,3 @@ jobs:
       - name: Stop demo app
         if: always()
         run: docker compose down
-

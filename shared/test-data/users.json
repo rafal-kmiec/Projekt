@@ -1,14 +1,16 @@
 {
   "users": [
     {
-      "role": "standard",
-      "username": "standard_user",
-      "password": "secret_sauce"
+      "role": "comms_manager",
+      "username": "comms_manager",
+      "password": "commsflow123",
+      "permissions": ["create_template", "submit_template", "send_campaign"]
     },
     {
-      "role": "locked",
-      "username": "locked_user",
-      "password": "secret_sauce"
+      "role": "compliance_reviewer",
+      "username": "compliance_reviewer",
+      "password": "commsflow123",
+      "permissions": ["approve_template"]
     }
   ]
 }

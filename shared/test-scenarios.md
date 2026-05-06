@@ -2,16 +2,26 @@
 
 ## Smoke
 
-- Home page loads.
-- Standard user can log in.
-- Product list is visible.
-- User can add one product to cart.
-- User can complete checkout.
+- Comms Manager can sign in.
+- Comms Manager can create a `Policy Renewal Notice` template.
+- Comms Manager can submit the template for approval.
+- Compliance Reviewer can sign in and approve the pending template.
+- Comms Manager can send a `Policy Renewal May 2026` campaign using the approved template.
+- Archive records are created for Email, SMS, Portal, and Print recipients.
+- Dashboard metrics reflect approved templates, sent campaigns, and archive records.
 
 ## Regression
 
-- Locked user cannot log in.
-- Checkout validates required fields.
-- Cart quantity and total update correctly.
-- Sorting changes product order.
-- Empty states are readable and actionable.
+- Invalid login shows a clear error message.
+- Compliance Reviewer cannot create new templates.
+- Comms Manager cannot approve templates.
+- Campaign send is blocked until an approved template is selected.
+- Customer preferred channels are preserved in archive records.
+- Audit trail records login, template, approval, and campaign actions.
+
+## Future E2E
+
+- Receive an inbound customer response and assign it to a team.
+- Upload a document to the archive.
+- Search archive by customer, policy number, channel, and campaign.
+- Validate role-based navigation and restricted actions.

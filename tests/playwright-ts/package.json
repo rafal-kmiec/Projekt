@@ -1,5 +1,5 @@
 {
-  "name": "qa-ai-automation-playwright",
+  "name": "qa-ai-automation-playwright-ts",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -14,3 +14,4 @@
     "typescript": "latest"
   }
 }
+
