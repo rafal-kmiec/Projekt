@@ -60,6 +60,12 @@ Regression checks can be run after setup with:
 .\scripts\run-regression.ps1
 ```
 
+Local test reports are written to:
+
+```text
+reports/index.html
+```
+
 ## Test Setup Preview
 
 ```powershell
@@ -113,17 +119,20 @@ CI uploads the key debugging artifacts:
 
 - Playwright report from `tests/playwright-ts/playwright-report`.
 - Playwright traces, screenshots, and videos from `tests/playwright-ts/test-results`.
-- Selenium pytest output as `reports/selenium-smoke.xml`.
+- Playwright JUnit XML as `reports/playwright-smoke.xml`.
+- Selenium pytest JUnit XML as `reports/selenium-smoke.xml`.
 
 For local debugging, use:
 
 ```powershell
-cd tests/playwright-ts
-npm run report
+.\scripts\test-smoke.ps1
+.\scripts\run-regression.ps1
 
-cd ..\selenium-python
-.\.venv\Scripts\python.exe -m pytest tests\smoke -q --junitxml=..\..\reports\selenium-smoke.xml
+cd tests\playwright-ts
+npm run report
 ```
+
+The shared local report is generated from all JUnit XML files in `reports/` and saved as `reports/index.html`.
 
 Pull requests use `.github/pull_request_template.md` so every change includes scope, validation, and demo-readiness notes.
 

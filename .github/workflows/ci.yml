@@ -37,6 +37,7 @@ jobs:
         working-directory: tests/playwright-ts
         env:
           DEMO_APP_BASE_URL: http://127.0.0.1:5173
+          PLAYWRIGHT_JUNIT_OUTPUT_FILE: ../../reports/playwright-smoke.xml
         run: npm run test:smoke
       - name: Upload Playwright report
         if: always()
@@ -46,6 +47,7 @@ jobs:
           path: |
             tests/playwright-ts/playwright-report
             tests/playwright-ts/test-results
+            reports/playwright-smoke.xml
           if-no-files-found: ignore
       - name: Stop demo app
         if: always()

@@ -50,6 +50,14 @@ Run:
 
 Explain that smoke is the PR gate and regression is the broader confidence layer.
 
+Open:
+
+```text
+reports/index.html
+```
+
+Explain that the shared report is generated from JUnit XML files produced by both Playwright TypeScript and Selenium Python.
+
 ## 4. Show AI Workflow Assets
 
 Open:
