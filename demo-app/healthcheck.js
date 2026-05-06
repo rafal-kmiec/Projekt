@@ -3,7 +3,8 @@ const url = `http://127.0.0.1:${port}/health`;
 
 try {
   const response = await fetch(url);
-  if (!response.ok) {
+  const body = (await response.text()).trim();
+  if (!response.ok || body !== "ok") {
     process.exit(1);
   }
 } catch {
