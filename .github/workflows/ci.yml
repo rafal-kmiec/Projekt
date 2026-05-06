@@ -1,8 +1,9 @@
 name: CI
 
 on:
+  workflow_dispatch:
   push:
-    branches: ["main"]
+    branches: ["main", "codex/**"]
   pull_request:
     branches: ["main"]
 
@@ -16,7 +17,7 @@ jobs:
           node-version: 22
       - name: Install Playwright dependencies
         working-directory: tests/playwright-ts
-        run: npm install
+        run: npm ci
       - name: Install Playwright browsers
         working-directory: tests/playwright-ts
         run: npx playwright install --with-deps chromium
@@ -30,11 +31,22 @@ jobs:
           done
           docker compose logs demo-app
           exit 1
+      - name: Build demo app
+        run: docker compose exec -T demo-app npm run build
       - name: Run Playwright smoke tests
         working-directory: tests/playwright-ts
         env:
           DEMO_APP_BASE_URL: http://127.0.0.1:5173
         run: npm run test:smoke
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            tests/playwright-ts/playwright-report
+            tests/playwright-ts/test-results
+          if-no-files-found: ignore
       - name: Stop demo app
         if: always()
         run: docker compose down
@@ -64,7 +76,16 @@ jobs:
         env:
           DEMO_APP_BASE_URL: http://127.0.0.1:5173
           HEADLESS: "true"
-        run: pytest tests/smoke
+        run: |
+          mkdir -p ../../reports
+          pytest tests/smoke -q --tb=short --junitxml=../../reports/selenium-smoke.xml
+      - name: Upload Selenium report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: selenium-smoke-report
+          path: reports/selenium-smoke.xml
+          if-no-files-found: error
       - name: Stop demo app
         if: always()
         run: docker compose down

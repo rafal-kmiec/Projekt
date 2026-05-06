@@ -81,6 +81,13 @@ type UpdateState = (updater: AppState | ((current: AppState) => AppState)) => vo
 type Navigate = (nextPath: Route) => void;
 type IconComponent = ComponentType<{ size?: number }>;
 
+const permissionLabels: Record<Permission, string> = {
+  create_template: "Create templates",
+  submit_template: "Submit for approval",
+  approve_template: "Approve regulated notices",
+  send_campaign: "Send campaigns"
+};
+
 const users: Record<Username, Account> = {
   comms_manager: {
     password: "commsflow123",
@@ -280,7 +287,28 @@ function Dashboard({ state, navigate }: { state: AppState; navigate: Navigate })
           <p className="muted">Policy renewal notices require reviewer approval before customer delivery.</p>
           <button data-testid="dashboard-open-templates" type="button" onClick={() => navigate("/templates")}>Review templates</button>
         </section>
+        {state.user ? <AccessProfile user={state.user} /> : null}
+      </div>
+      <div className="two-column dashboard-lower">
         <AuditTrail audit={state.audit} />
+        <section className="panel" data-testid="demo-workflow">
+          <h2>Demo workflow</h2>
+          <p className="muted">Create a template, submit it for approval, approve it as reviewer, then send a multi-channel campaign and verify archive evidence.</p>
+        </section>
+      </div>
+    </section>
+  );
+}
+
+function AccessProfile({ user }: { user: ActiveUser }) {
+  return (
+    <section className="panel" data-testid="access-profile">
+      <h2>Access profile</h2>
+      <p className="muted" data-testid="access-role">{user.role}</p>
+      <div className="permission-list" data-testid="permission-list">
+        {user.permissions.map((permission) => (
+          <span key={permission}>{permissionLabels[permission]}</span>
+        ))}
       </div>
     </section>
   );
@@ -364,6 +392,14 @@ function TemplatesPage({ state, updateState }: { state: AppState; updateState: U
               <h2>{template.name}</h2>
               <p className="muted">Owner: {template.owner}</p>
             </div>
+            <details data-testid={`template-details-${template.id}`}>
+              <summary>Template details</summary>
+              <dl>
+                <div><dt>Document type</dt><dd>Policy renewal notice</dd></div>
+                <div><dt>Approval policy</dt><dd>Compliance approval required before send</dd></div>
+                <div><dt>Channels</dt><dd>Email, SMS, Portal, Print</dd></div>
+              </dl>
+            </details>
             <StatusBadge status={template.status} testId={`template-status-${template.id}`} />
             {canSubmitTemplate && template.status === "Draft" ? (
               <button data-testid={`submit-template-${template.id}`} type="button" onClick={() => setTemplateStatus(template, "Pending Approval")}>Submit for approval</button>
@@ -376,6 +412,11 @@ function TemplatesPage({ state, updateState }: { state: AppState; updateState: U
             ) : null}
           </article>
         ))}
+        {!state.templates.length ? (
+          <section className="panel empty-state" data-testid="templates-empty-state">
+            No communication templates exist yet.
+          </section>
+        ) : null}
       </div>
     </section>
   );
@@ -458,9 +499,21 @@ function CampaignList({ campaigns }: { campaigns: Campaign[] }) {
           <h2>{campaign.name}</h2>
           <p className="muted">Template: {campaign.template}</p>
           <p className="muted">Recipients: {campaign.recipients}</p>
+          <details data-testid={`campaign-details-${campaign.id}`}>
+            <summary>Campaign details</summary>
+            <dl>
+              <div><dt>Delivery mode</dt><dd>Customer preference based routing</dd></div>
+              <div><dt>Evidence</dt><dd>Archive records and audit trail generated on send</dd></div>
+            </dl>
+          </details>
           <StatusBadge status={campaign.status} testId={`campaign-status-${campaign.id}`} />
         </article>
       ))}
+      {!campaigns.length ? (
+        <section className="panel empty-state" data-testid="campaigns-empty-state">
+          No campaigns have been sent yet.
+        </section>
+      ) : null}
     </div>
   );
 }
@@ -499,12 +552,13 @@ function ArchivePage({ state }: { state: AppState }) {
       </div>
       <div className="table panel" data-testid="archive-records">
         <div className="table-row table-head"><span>Customer</span><span>Policy</span><span>Campaign</span><span>Channel</span><span>Status</span></div>
+        {!state.archive.length ? <div className="table-row archive-empty" data-testid="archive-initial-empty-state"><span>No communication evidence has been archived yet.</span></div> : null}
         {filteredArchive.map((record) => (
           <div className="table-row" data-testid={`archive-record-${slugify(record.customer)}`} key={record.id}>
             <span>{record.customer}</span><span>{record.policy}</span><span>{record.campaign}</span><span>{record.channel}</span><span>{record.status}</span>
           </div>
         ))}
-        {!filteredArchive.length ? <div className="table-row archive-empty" data-testid="archive-empty-state"><span>No archive records match the current search.</span></div> : null}
+        {state.archive.length > 0 && !filteredArchive.length ? <div className="table-row archive-empty" data-testid="archive-empty-state"><span>No archive records match the current search.</span></div> : null}
       </div>
     </section>
   );

@@ -255,6 +255,10 @@ select {
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
 }
 
+.dashboard-lower {
+  margin-top: 18px;
+}
+
 .card-grid {
   display: grid;
   gap: 16px;
@@ -265,6 +269,39 @@ select {
   align-content: start;
   display: grid;
   gap: 14px;
+}
+
+details {
+  border: 1px solid #e5eaf2;
+  border-radius: 8px;
+  padding: 12px;
+}
+
+summary {
+  color: #315f72;
+  cursor: pointer;
+  font-weight: 900;
+}
+
+dl {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0 0;
+}
+
+dl div {
+  display: grid;
+  gap: 2px;
+}
+
+dt {
+  color: #667085;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+dd {
+  margin: 0;
 }
 
 .status-badge {
@@ -410,6 +447,23 @@ ol {
 }
 .permission-count {
   color: #315f72;
+}
+
+.permission-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.permission-list span {
+  background: #eef6f8;
+  border: 1px solid #c7dfe6;
+  border-radius: 999px;
+  color: #315f72;
+  font-size: 13px;
+  font-weight: 900;
+  padding: 7px 10px;
 }
 
 .permission-note {

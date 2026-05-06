@@ -32,6 +32,13 @@ class CommsFlowApp:
         assert self.find_by_test_id("login-page").is_displayed()
         return self
 
+    def expect_manager_access_profile(self):
+        assert "Comms Manager" in self.find_by_test_id("access-profile").text
+        permissions = self.find_by_test_id("permission-list").text
+        assert "Create templates" in permissions
+        assert "Send campaigns" in permissions
+        return self
+
     def logout(self):
         self.click_by_test_id("logout-button")
         self.wait_for_test_id("login-page")
@@ -46,6 +53,17 @@ class CommsFlowApp:
         self.type_by_test_id("template-name-input", name)
         self.click_by_test_id("template-create-button")
         self.wait_for_test_id("template-card-policy-renewal-notice")
+        return self
+
+    def expect_templates_empty_state(self):
+        assert "No communication templates" in self.find_by_test_id("templates-empty-state").text
+        return self
+
+    def expect_template_details(self):
+        self.click_by_test_id("template-details-policy-renewal-notice")
+        details = self.find_by_test_id("template-details-policy-renewal-notice").text
+        assert "Compliance approval required" in details
+        assert "Email, SMS, Portal, Print" in details
         return self
 
     def submit_template_for_approval(self):
@@ -78,11 +96,22 @@ class CommsFlowApp:
         assert self.find_by_test_id("campaign-send-button").get_attribute("disabled") is not None
         return self
 
+    def expect_campaigns_empty_state(self):
+        assert "No campaigns" in self.find_by_test_id("campaigns-empty-state").text
+        return self
+
     def send_policy_renewal_campaign(self):
         Select(self.find_by_test_id("campaign-template-select")).select_by_value("policy-renewal-notice")
         self.click_by_test_id("campaign-send-button")
         self.wait_for_test_id("campaign-card-policy-renewal-may-2026")
         self.wait_for_text("campaign-status-policy-renewal-may-2026", "Sent")
+        return self
+
+    def expect_campaign_details(self):
+        self.click_by_test_id("campaign-details-policy-renewal-may-2026")
+        details = self.find_by_test_id("campaign-details-policy-renewal-may-2026").text
+        assert "Customer preference based routing" in details
+        assert "Archive records" in details
         return self
 
     def open_archive(self):
@@ -97,12 +126,22 @@ class CommsFlowApp:
         assert "Print" in self.find_by_test_id("archive-record-elliot-ward").text
         return self
 
+    def expect_archive_initial_empty_state(self):
+        assert "No communication evidence" in self.find_by_test_id("archive-initial-empty-state").text
+        return self
+
     def expect_archive_search_works(self):
         self.type_by_test_id("archive-search-input", "Maya")
         assert self.find_by_test_id("archive-record-maya-chen").is_displayed()
         assert not self.has_test_id("archive-record-avery-brooks")
         self.type_by_test_id("archive-search-input", "FAX")
         assert "No archive records" in self.find_by_test_id("archive-empty-state").text
+        return self
+
+    def expect_archive_search_by_policy_number(self):
+        self.type_by_test_id("archive-search-input", "POL-33810")
+        assert "Portal" in self.find_by_test_id("archive-record-nora-singh").text
+        assert not self.has_test_id("archive-record-maya-chen")
         return self
 
     def open_dashboard(self):

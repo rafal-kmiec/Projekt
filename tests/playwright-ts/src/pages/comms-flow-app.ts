@@ -24,6 +24,12 @@ export class CommsFlowApp {
     await expect(this.page.getByTestId("login-page")).toBeVisible();
   }
 
+  async expectManagerAccessProfile() {
+    await expect(this.page.getByTestId("access-profile")).toContainText("Comms Manager");
+    await expect(this.page.getByTestId("permission-list")).toContainText("Create templates");
+    await expect(this.page.getByTestId("permission-list")).toContainText("Send campaigns");
+  }
+
   async logout() {
     await this.page.getByTestId("logout-button").click();
     await expect(this.page.getByTestId("login-page")).toBeVisible();
@@ -38,6 +44,16 @@ export class CommsFlowApp {
     await this.page.getByTestId("template-name-input").fill(name);
     await this.page.getByTestId("template-create-button").click();
     await expect(this.page.getByTestId("template-card-policy-renewal-notice")).toBeVisible();
+  }
+
+  async expectTemplatesEmptyState() {
+    await expect(this.page.getByTestId("templates-empty-state")).toContainText("No communication templates");
+  }
+
+  async expectTemplateDetails() {
+    await this.page.getByTestId("template-details-policy-renewal-notice").click();
+    await expect(this.page.getByTestId("template-details-policy-renewal-notice")).toContainText("Compliance approval required");
+    await expect(this.page.getByTestId("template-details-policy-renewal-notice")).toContainText("Email, SMS, Portal, Print");
   }
 
   async submitTemplateForApproval() {
@@ -70,11 +86,21 @@ export class CommsFlowApp {
     await expect(this.page.getByTestId("campaign-send-button")).toBeDisabled();
   }
 
+  async expectCampaignsEmptyState() {
+    await expect(this.page.getByTestId("campaigns-empty-state")).toContainText("No campaigns");
+  }
+
   async sendPolicyRenewalCampaign() {
     await this.page.getByTestId("campaign-template-select").selectOption("policy-renewal-notice");
     await this.page.getByTestId("campaign-send-button").click();
     await expect(this.page.getByTestId("campaign-card-policy-renewal-may-2026")).toBeVisible();
     await expect(this.page.getByTestId("campaign-status-policy-renewal-may-2026")).toContainText("Sent");
+  }
+
+  async expectCampaignDetails() {
+    await this.page.getByTestId("campaign-details-policy-renewal-may-2026").click();
+    await expect(this.page.getByTestId("campaign-details-policy-renewal-may-2026")).toContainText("Customer preference based routing");
+    await expect(this.page.getByTestId("campaign-details-policy-renewal-may-2026")).toContainText("Archive records");
   }
 
   async openArchive() {
@@ -89,6 +115,10 @@ export class CommsFlowApp {
     await expect(this.page.getByTestId("archive-record-elliot-ward")).toContainText("Print");
   }
 
+  async expectArchiveInitialEmptyState() {
+    await expect(this.page.getByTestId("archive-initial-empty-state")).toContainText("No communication evidence");
+  }
+
   async expectArchiveSearchWorks() {
     await this.page.getByTestId("archive-search-input").fill("Maya");
     await expect(this.page.getByTestId("archive-record-maya-chen")).toBeVisible();
@@ -96,6 +126,12 @@ export class CommsFlowApp {
 
     await this.page.getByTestId("archive-search-input").fill("FAX");
     await expect(this.page.getByTestId("archive-empty-state")).toContainText("No archive records");
+  }
+
+  async expectArchiveSearchByPolicyNumber() {
+    await this.page.getByTestId("archive-search-input").fill("POL-33810");
+    await expect(this.page.getByTestId("archive-record-nora-singh")).toContainText("Portal");
+    await expect(this.page.getByTestId("archive-record-maya-chen")).toHaveCount(0);
   }
 
   async openDashboard() {

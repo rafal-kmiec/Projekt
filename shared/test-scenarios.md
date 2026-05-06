@@ -10,6 +10,7 @@
 - Archive records are created for Email, SMS, Portal, and Print recipients.
 - Archive search filters communication evidence by customer or channel.
 - Dashboard metrics reflect approved templates, sent campaigns, and archive records.
+- Demo pages expose readable empty states before templates, campaigns, or archive records exist.
 
 ## Regression
 
@@ -20,6 +21,8 @@
 - Managers see approval restrictions on pending templates.
 - Reviewers see template creation restrictions.
 - Customer preferred channels are preserved in archive records.
+- Template and campaign details explain approval policy, routing, and archive evidence.
+- Archive search can find records by policy number.
 - Audit trail records login, template, approval, and campaign actions.
 
 ## Future E2E

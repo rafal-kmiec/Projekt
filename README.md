@@ -36,10 +36,13 @@ reports/                  Local reports, ignored by Git except .gitkeep
 ## Quick Start
 
 ```powershell
-docker compose up --build demo-app
+.\scripts\setup.ps1
+.\scripts\test-smoke.ps1
 ```
 
-The application should be available at:
+The setup script installs local Playwright and Selenium dependencies. The smoke script starts the Dockerized demo app, runs the TypeScript build inside the container, and executes both Playwright TypeScript and Selenium Python smoke suites.
+
+The application is available at:
 
 ```text
 http://localhost:5173
@@ -51,27 +54,49 @@ Health endpoint:
 http://localhost:5173/health
 ```
 
+Regression checks can be run after setup with:
+
+```powershell
+.\scripts\run-regression.ps1
+```
+
 ## Test Setup Preview
 
 ```powershell
+# Start only the demo app
+docker compose up --build -d demo-app
+
 # Playwright TypeScript
 cd tests/playwright-ts
 npm install
 npx playwright install chromium
 npm run test:smoke
+npm run test:regression
 
 # Selenium Python
 cd tests/selenium-python
-python -m venv .venv
+py -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install -e .
 pytest tests/smoke
+pytest tests/regression
 ```
+
+## VS Code Tasks
+
+The repository includes tracked workspace tasks for common demo flows:
+
+- `demo-app: start docker` starts the Dockerized CommsFlow app.
+- `smoke: playwright headed` runs Playwright smoke tests with a visible browser.
+- `smoke: selenium headed` runs Selenium smoke tests with a visible browser.
+- `smoke: all headed` starts Docker and runs both headed smoke suites.
+- `regression: playwright`, `regression: selenium`, and `regression: all` run the wider regression suites.
+
+The recommended extensions are listed in `.vscode/extensions.json`.
 
 ## First Milestones
 
-1. Build the `CommsFlow` MVP demo app.
-2. Add smoke tests for login, template approval, campaign send, dashboard, and archive evidence.
-3. Implement the same business flow in Selenium Python and Playwright TypeScript.
-4. Run the app through Docker Compose locally and in CI.
-5. Document AI-agent workflow with prompts and review rules.
+1. Keep smoke tests fast and stable as the main PR gate.
+2. Grow regression coverage in parallel for role restrictions, archive search, and audit trail evidence.
+3. Use Docker Compose as the single application startup path locally and in CI.
+4. Document AI-agent workflow with reusable prompts and review rules.
