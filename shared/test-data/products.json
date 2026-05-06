@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "id": "backpack",
+      "name": "QA Backpack",
+      "price": 49.99
+    },
+    {
+      "id": "lamp",
+      "name": "Debug Lamp",
+      "price": 19.99
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "users": [
+    {
+      "role": "standard",
+      "username": "standard_user",
+      "password": "secret_sauce"
+    },
+    {
+      "role": "locked",
+      "username": "locked_user",
+      "password": "secret_sauce"
+    }
+  ]
+}

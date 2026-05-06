@@ -1,0 +1,71 @@
+name: CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  playwright:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install Playwright dependencies
+        working-directory: tests/playwright-js
+        run: npm install
+      - name: Install Playwright browsers
+        working-directory: tests/playwright-js
+        run: npx playwright install --with-deps chromium
+      - name: Start demo app container
+        run: docker compose up --build -d demo-app
+      - name: Wait for demo app
+        run: |
+          for i in {1..30}; do
+            curl -fsS http://127.0.0.1:5173/health && exit 0
+            sleep 2
+          done
+          docker compose logs demo-app
+          exit 1
+      - name: Run Playwright smoke tests
+        working-directory: tests/playwright-js
+        env:
+          DEMO_APP_BASE_URL: http://127.0.0.1:5173
+        run: npm run test:smoke
+      - name: Stop demo app
+        if: always()
+        run: docker compose down
+
+  selenium:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install Selenium dependencies
+        working-directory: tests/selenium-python
+        run: pip install -e .
+      - name: Start demo app container
+        run: docker compose up --build -d demo-app
+      - name: Wait for demo app
+        run: |
+          for i in {1..30}; do
+            curl -fsS http://127.0.0.1:5173/health && exit 0
+            sleep 2
+          done
+          docker compose logs demo-app
+          exit 1
+      - name: Run Selenium smoke tests
+        working-directory: tests/selenium-python
+        env:
+          DEMO_APP_BASE_URL: http://127.0.0.1:5173
+          HEADLESS: "true"
+        run: pytest tests/smoke
+      - name: Stop demo app
+        if: always()
+        run: docker compose down
+
