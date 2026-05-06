@@ -1,0 +1,81 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "demo-app: start docker",
+      "type": "shell",
+      "command": "docker",
+      "args": [
+        "compose",
+        "up",
+        "--build",
+        "-d",
+        "demo-app"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "smoke: playwright headed",
+      "type": "shell",
+      "command": "npm",
+      "args": [
+        "run",
+        "test:smoke",
+        "--",
+        "--headed"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}/tests/playwright-ts",
+        "env": {
+          "DEMO_APP_BASE_URL": "http://localhost:5173"
+        }
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "smoke: selenium headed",
+      "type": "shell",
+      "command": ".\\.venv\\Scripts\\python.exe",
+      "args": [
+        "-m",
+        "pytest",
+        "tests/smoke",
+        "-q",
+        "--tb=short"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}/tests/selenium-python",
+        "env": {
+          "DEMO_APP_BASE_URL": "http://localhost:5173",
+          "HEADLESS": "false"
+        }
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "smoke: all headed",
+      "dependsOrder": "sequence",
+      "dependsOn": [
+        "demo-app: start docker",
+        "smoke: playwright headed",
+        "smoke: selenium headed"
+      ],
+      "problemMatcher": []
+    }
+  ]
+}

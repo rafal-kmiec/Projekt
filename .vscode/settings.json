@@ -1,0 +1,10 @@
+{
+  "python.defaultInterpreterPath": "${workspaceFolder}/tests/selenium-python/.venv/Scripts/python.exe",
+  "python.envFile": "${workspaceFolder}/.vscode/test.env",
+  "python.testing.cwd": "${workspaceFolder}/tests/selenium-python",
+  "python.testing.pytestArgs": [
+    "tests/smoke"
+  ],
+  "python.testing.pytestEnabled": true,
+  "python.testing.unittestEnabled": false
+}
