@@ -15,7 +15,7 @@ C:\Users\kmiec\Desktop\Rafał\projekt
 The remote repository is:
 
 ```text
-https://github.com/Kmieciu88/Projekt.git
+https://github.com/rafal-kmiec/Projekt.git
 ```
 
 ## Product Direction
@@ -129,3 +129,4 @@ This repository should demonstrate a supervised AI-assisted QA workflow:
 - Reviewer Agent: checks stability, assertions, naming, and maintainability.
 
 AI-generated output should be reviewed like any other code contribution.
+
