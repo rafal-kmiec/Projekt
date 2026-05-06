@@ -94,6 +94,39 @@ The repository includes tracked workspace tasks for common demo flows:
 
 The recommended extensions are listed in `.vscode/extensions.json`.
 
+## Demo Walkthrough
+
+Use `docs/05-demo-script.md` as a 10-minute presentation path. It covers local startup, the CommsFlow business flow, smoke and regression tests, the AI-agent workflow, and the CI artifacts worth showing during a review.
+
+Useful supporting docs:
+
+- `docs/01-test-target-decision.md` explains why CommsFlow is the primary test target.
+- `docs/02-test-strategy.md` describes the smoke and regression split.
+- `docs/03-ai-agent-workflow.md` shows the business requirement to test implementation workflow.
+- `docs/04-ci-cd.md` documents the GitHub Actions pipeline.
+
+## Reports And CI
+
+GitHub Actions runs the smoke gate on pushes to `main`, pushes to `codex/**`, pull requests to `main`, and manual `workflow_dispatch` runs.
+
+CI uploads the key debugging artifacts:
+
+- Playwright report from `tests/playwright-ts/playwright-report`.
+- Playwright traces, screenshots, and videos from `tests/playwright-ts/test-results`.
+- Selenium pytest output as `reports/selenium-smoke.xml`.
+
+For local debugging, use:
+
+```powershell
+cd tests/playwright-ts
+npm run report
+
+cd ..\selenium-python
+.\.venv\Scripts\python.exe -m pytest tests\smoke -q --junitxml=..\..\reports\selenium-smoke.xml
+```
+
+Pull requests use `.github/pull_request_template.md` so every change includes scope, validation, and demo-readiness notes.
+
 ## First Milestones
 
 1. Keep smoke tests fast and stable as the main PR gate.
