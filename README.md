@@ -195,10 +195,10 @@ Aktualne pokrycie jest opisane jako **functional scenario coverage**, czyli pokr
 | Warstwa | Playwright TypeScript | Selenium Python |
 | --- | ---: | ---: |
 | Smoke | 3 testy | 3 testy |
-| Regression | 12 testów | 12 testów |
-| Razem | 15 testów | 15 testów |
+| Regression | 17 testów | 17 testów |
+| Razem | 20 testów | 20 testów |
 
-Łącznie aplikacja demo ma **30 automatycznych testów funkcjonalnych** wykonywanych w dwóch stackach.
+Łącznie aplikacja demo ma **40 automatycznych testów funkcjonalnych** wykonywanych w dwóch stackach.
 
 Pokryte obszary:
 
@@ -211,11 +211,12 @@ Pokryte obszary:
 - archive search,
 - dashboard metrics,
 - audit trail,
-- customers/inbox static evidence.
+- customers/inbox static evidence,
+- security guardrails dla protected routes, ról, `localStorage`, XSS-safe rendering i braku wycieku haseł.
 
 Smoke obejmuje krytyczny flow: login managera, utworzenie template, approval reviewera, wysyłkę kampanii, archiwum i dashboard.
 
-Regression obejmuje szersze zachowania: blokady ról, protected routing, refresh sesji, duplicate template, kampanie bez odbiorców, wyszukiwanie po różnych polach, channel summary, audit order oraz static pages.
+Regression obejmuje szersze zachowania: blokady ról, protected routing, refresh sesji, duplicate template, kampanie bez odbiorców, wyszukiwanie po różnych polach, channel summary, audit order, static pages oraz demo-safe security checks.
 
 ## Raporty Testowe
 
@@ -596,10 +597,10 @@ The current coverage is described as **functional scenario coverage**, meaning b
 | Layer | Playwright TypeScript | Selenium Python |
 | --- | ---: | ---: |
 | Smoke | 3 tests | 3 tests |
-| Regression | 12 tests | 12 tests |
-| Total | 15 tests | 15 tests |
+| Regression | 17 tests | 17 tests |
+| Total | 20 tests | 20 tests |
 
-In total, the demo app has **30 automated functional tests** executed across two stacks.
+In total, the demo app has **40 automated functional tests** executed across two stacks.
 
 Covered areas:
 
@@ -612,11 +613,12 @@ Covered areas:
 - archive search,
 - dashboard metrics,
 - audit trail,
-- customers/inbox static evidence.
+- customers/inbox static evidence,
+- security guardrails for protected routes, roles, `localStorage`, XSS-safe rendering, and password exposure.
 
 Smoke covers the critical path: manager login, template creation, reviewer approval, campaign send, archive evidence, and dashboard metrics.
 
-Regression covers broader behavior: role restrictions, protected routing, session refresh, duplicate template handling, campaigns without recipients, multi-field search, channel summary, audit order, and static pages.
+Regression covers broader behavior: role restrictions, protected routing, session refresh, duplicate template handling, campaigns without recipients, multi-field search, channel summary, audit order, static pages, and demo-safe security checks.
 
 ## Test Reports
 

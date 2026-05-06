@@ -2,6 +2,13 @@ import { expect, type Page } from "@playwright/test";
 
 type Username = "comms_manager" | "compliance_reviewer";
 type CustomerId = "cust-001" | "cust-002" | "cust-003" | "cust-004";
+type ProtectedRoute = "/dashboard" | "/templates" | "/campaigns" | "/archive";
+
+const storageKey = "commsflow-state-v1";
+
+function slugify(value: string): string {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+}
 
 export class CommsFlowApp {
   constructor(private readonly page: Page) {}
@@ -20,6 +27,64 @@ export class CommsFlowApp {
   async openProtectedArchiveWhileLoggedOut() {
     await this.page.goto("/archive");
     await expect(this.page.getByTestId("login-page")).toBeVisible();
+  }
+
+  async expectProtectedRoutesRequireLogin(routes: ProtectedRoute[] = ["/dashboard", "/templates", "/campaigns", "/archive"]) {
+    for (const route of routes) {
+      await this.page.goto(route);
+      await expect(this.page.getByTestId("login-page")).toBeVisible();
+    }
+  }
+
+  async expectDirectRouteAfterLogoutRequiresLogin(route: ProtectedRoute) {
+    await this.logout();
+    await this.page.goto(route);
+    await expect(this.page.getByTestId("login-page")).toBeVisible();
+  }
+
+  async setStoredState(state: unknown) {
+    await this.page.goto("/login");
+    await this.page.evaluate(
+      ({ key, value }) => localStorage.setItem(key, typeof value === "string" ? value : JSON.stringify(value)),
+      { key: storageKey, value: state }
+    );
+  }
+
+  async expectCorruptedStorageFallsBackToLogin() {
+    await this.setStoredState("{not-valid-json");
+    await this.page.goto("/dashboard");
+    await expect(this.page.getByTestId("login-page")).toBeVisible();
+  }
+
+  async expectUnknownStoredUserFallsBackToLogin() {
+    await this.setStoredState({
+      user: {
+        username: "security_admin",
+        role: "Security Admin",
+        permissions: ["create_template", "approve_template", "send_campaign"]
+      }
+    });
+    await this.page.goto("/templates");
+    await expect(this.page.getByTestId("login-page")).toBeVisible();
+  }
+
+  async expectTamperedManagerPermissionsAreCanonical() {
+    await this.setStoredState({
+      user: {
+        username: "comms_manager",
+        role: "Comms Manager",
+        permissions: ["create_template", "submit_template", "approve_template", "send_campaign"]
+      },
+      templates: [{ id: "policy-renewal-notice", name: "Policy Renewal Notice", status: "Pending Approval", version: 1, owner: "Comms Manager" }],
+      campaigns: [],
+      archive: [],
+      audit: []
+    });
+    await this.page.goto("/templates");
+    await expect(this.page.getByTestId("templates-page")).toBeVisible();
+    await expect(this.page.getByTestId("current-permissions")).toContainText("3 permissions");
+    await expect(this.page.getByTestId("approve-template-policy-renewal-notice")).toHaveCount(0);
+    await expect(this.page.getByTestId("manager-approval-blocked-policy-renewal-notice")).toContainText("Approval is restricted");
   }
 
   async attemptInvalidLogin() {
@@ -84,6 +149,21 @@ export class CommsFlowApp {
     await this.page.getByTestId("template-name-input").fill(name);
     await this.page.getByTestId("template-create-button").click();
     await expect(this.page.getByTestId("template-card-policy-renewal-notice")).toBeVisible();
+  }
+
+  async createTemplateWithName(name: string) {
+    const id = slugify(name);
+    await this.page.getByTestId("template-name-input").fill(name);
+    await this.page.getByTestId("template-create-button").click();
+    await expect(this.page.getByTestId(`template-card-${id}`)).toBeVisible();
+    return id;
+  }
+
+  async expectTemplateNamePayloadIsRenderedAsText(payload: string) {
+    await this.trackAlertCalls();
+    const id = await this.createTemplateWithName(payload);
+    await expect(this.page.getByTestId(`template-card-${id}`)).toContainText(payload);
+    await this.expectNoScriptPayloadExecuted();
   }
 
   async expectTemplateDraftMetadata() {
@@ -170,6 +250,16 @@ export class CommsFlowApp {
     await expect(this.page.getByTestId("campaign-status-policy-renewal-may-2026")).toContainText("Sent");
   }
 
+  async sendCampaignWithName(name: string) {
+    const id = slugify(name);
+    await this.trackAlertCalls();
+    await this.page.getByTestId("campaign-name-input").fill(name);
+    await this.page.getByTestId("campaign-template-select").selectOption("policy-renewal-notice");
+    await this.page.getByTestId("campaign-send-button").click();
+    await expect(this.page.getByTestId(`campaign-card-${id}`)).toContainText(name);
+    await this.expectNoScriptPayloadExecuted();
+  }
+
   async attemptCampaignWithoutRecipients() {
     await this.page.getByTestId("campaign-template-select").selectOption("policy-renewal-notice");
     for (const customerId of ["cust-001", "cust-002", "cust-003", "cust-004"] as CustomerId[]) {
@@ -250,6 +340,13 @@ export class CommsFlowApp {
     await this.expectArchiveEvidence();
   }
 
+  async expectArchiveSearchPayloadIsSafe(payload: string) {
+    await this.trackAlertCalls();
+    await this.page.getByTestId("archive-search-input").fill(payload);
+    await expect(this.page.getByTestId("archive-empty-state")).toContainText("No archive records");
+    await this.expectNoScriptPayloadExecuted();
+  }
+
   async openDashboard() {
     await this.page.getByTestId("nav-dashboard").click();
     await expect(this.page.getByTestId("dashboard-page")).toBeVisible();
@@ -267,6 +364,16 @@ export class CommsFlowApp {
     await expect(this.page.getByTestId("metric-sent-campaigns")).toContainText("1");
     await expect(this.page.getByTestId("metric-archive-records")).toContainText("4");
     await expect(this.page.getByTestId("audit-trail")).toContainText("Campaign Policy Renewal May 2026 sent to 4 customers");
+  }
+
+  async expectPasswordIsNotExposedAfterLogin() {
+    for (const openPage of [() => this.openDashboard(), () => this.openTemplates(), () => this.openCampaigns(), () => this.openArchive()]) {
+      await openPage();
+      await expect(this.page.getByTestId("app-shell")).not.toContainText("commsflow123");
+    }
+
+    const storedState = await this.page.evaluate((key) => localStorage.getItem(key) ?? "", storageKey);
+    expect(storedState).not.toContain("commsflow123");
   }
 
   async expectAuditTrailContainsWorkflowInNewestFirstOrder() {
@@ -303,5 +410,20 @@ export class CommsFlowApp {
 
   async expectInboxEmptyState() {
     await expect(this.page.getByTestId("inbox-page")).toContainText("No inbound messages require action");
+  }
+
+  private async trackAlertCalls() {
+    await this.page.evaluate(() => {
+      (window as unknown as { __commsflowAlerts: string[] }).__commsflowAlerts = [];
+      window.alert = (message?: string) => {
+        (window as unknown as { __commsflowAlerts: string[] }).__commsflowAlerts.push(message ?? "");
+      };
+    });
+  }
+
+  private async expectNoScriptPayloadExecuted() {
+    await expect(this.page.locator("[onerror], [onload]")).toHaveCount(0);
+    const alertCount = await this.page.evaluate(() => (window as unknown as { __commsflowAlerts?: string[] }).__commsflowAlerts?.length ?? 0);
+    expect(alertCount).toBe(0);
   }
 }

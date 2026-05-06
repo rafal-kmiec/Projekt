@@ -1,6 +1,11 @@
+import json
+import re
+
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import Select, WebDriverWait
+
+STORAGE_KEY = "commsflow-state-v1"
 
 
 class CommsFlowApp:
@@ -30,6 +35,71 @@ class CommsFlowApp:
     def open_protected_archive_while_logged_out(self):
         self.driver.get(f"{self.base_url}/archive")
         self.wait_for_test_id("login-page")
+        return self
+
+    def expect_protected_routes_require_login(self, routes=None):
+        for route in routes or ["/dashboard", "/templates", "/campaigns", "/archive"]:
+            self.driver.get(f"{self.base_url}{route}")
+            self.wait_for_test_id("login-page")
+        return self
+
+    def expect_direct_route_after_logout_requires_login(self, route):
+        self.logout()
+        self.driver.get(f"{self.base_url}{route}")
+        self.wait_for_test_id("login-page")
+        return self
+
+    def set_stored_state(self, state):
+        self.driver.get(f"{self.base_url}/login")
+        value = state if isinstance(state, str) else json.dumps(state)
+        self.driver.execute_script(
+            "localStorage.setItem(arguments[0], arguments[1]);",
+            STORAGE_KEY,
+            value,
+        )
+        return self
+
+    def expect_corrupted_storage_falls_back_to_login(self):
+        self.set_stored_state("{not-valid-json")
+        self.driver.get(f"{self.base_url}/dashboard")
+        self.wait_for_test_id("login-page")
+        return self
+
+    def expect_unknown_stored_user_falls_back_to_login(self):
+        self.set_stored_state({
+            "user": {
+                "username": "security_admin",
+                "role": "Security Admin",
+                "permissions": ["create_template", "approve_template", "send_campaign"],
+            }
+        })
+        self.driver.get(f"{self.base_url}/templates")
+        self.wait_for_test_id("login-page")
+        return self
+
+    def expect_tampered_manager_permissions_are_canonical(self):
+        self.set_stored_state({
+            "user": {
+                "username": "comms_manager",
+                "role": "Comms Manager",
+                "permissions": ["create_template", "submit_template", "approve_template", "send_campaign"],
+            },
+            "templates": [{
+                "id": "policy-renewal-notice",
+                "name": "Policy Renewal Notice",
+                "status": "Pending Approval",
+                "version": 1,
+                "owner": "Comms Manager",
+            }],
+            "campaigns": [],
+            "archive": [],
+            "audit": [],
+        })
+        self.driver.get(f"{self.base_url}/templates")
+        self.wait_for_test_id("templates-page")
+        assert "3 permissions" in self.find_by_test_id("current-permissions").text
+        assert not self.has_test_id("approve-template-policy-renewal-notice")
+        assert "Approval is restricted" in self.find_by_test_id("manager-approval-blocked-policy-renewal-notice").text
         return self
 
     def expect_invalid_login_error(self):
@@ -93,6 +163,20 @@ class CommsFlowApp:
         self.type_by_test_id("template-name-input", name)
         self.click_by_test_id("template-create-button")
         self.wait_for_test_id("template-card-policy-renewal-notice")
+        return self
+
+    def create_template_with_name(self, name):
+        template_id = self.slugify(name)
+        self.type_by_test_id("template-name-input", name)
+        self.click_by_test_id("template-create-button")
+        self.wait_for_test_id(f"template-card-{template_id}")
+        return template_id
+
+    def expect_template_name_payload_is_rendered_as_text(self, payload):
+        self.track_alert_calls()
+        template_id = self.create_template_with_name(payload)
+        assert payload in self.find_by_test_id(f"template-card-{template_id}").text
+        self.expect_no_script_payload_executed()
         return self
 
     def expect_template_draft_metadata(self):
@@ -178,6 +262,16 @@ class CommsFlowApp:
         self.wait_for_text("campaign-status-policy-renewal-may-2026", "Sent")
         return self
 
+    def send_campaign_with_name(self, name):
+        campaign_id = self.slugify(name)
+        self.track_alert_calls()
+        self.type_by_test_id("campaign-name-input", name)
+        Select(self.find_by_test_id("campaign-template-select")).select_by_value("policy-renewal-notice")
+        self.click_by_test_id("campaign-send-button")
+        assert name in self.find_by_test_id(f"campaign-card-{campaign_id}").text
+        self.expect_no_script_payload_executed()
+        return self
+
     def attempt_campaign_without_recipients(self):
         Select(self.find_by_test_id("campaign-template-select")).select_by_value("policy-renewal-notice")
         for customer_id in ["cust-001", "cust-002", "cust-003", "cust-004"]:
@@ -257,6 +351,13 @@ class CommsFlowApp:
         self.expect_archive_evidence()
         return self
 
+    def expect_archive_search_payload_is_safe(self, payload):
+        self.track_alert_calls()
+        self.type_by_test_id("archive-search-input", payload)
+        assert "No archive records" in self.find_by_test_id("archive-empty-state").text
+        self.expect_no_script_payload_executed()
+        return self
+
     def open_dashboard(self):
         self.click_by_test_id("nav-dashboard")
         self.wait_for_test_id("dashboard-page")
@@ -274,6 +375,14 @@ class CommsFlowApp:
         assert "1" in self.find_by_test_id("metric-sent-campaigns").text
         assert "4" in self.find_by_test_id("metric-archive-records").text
         assert "Campaign Policy Renewal May 2026 sent to 4 customers" in self.find_by_test_id("audit-trail").text
+        return self
+
+    def expect_password_is_not_exposed_after_login(self):
+        for open_page in [self.open_dashboard, self.open_templates, self.open_campaigns, self.open_archive]:
+            open_page()
+            assert "commsflow123" not in self.find_by_test_id("app-shell").text
+        stored_state = self.driver.execute_script("return localStorage.getItem(arguments[0]) || '';", STORAGE_KEY)
+        assert "commsflow123" not in stored_state
         return self
 
     def expect_audit_trail_contains_workflow_in_newest_first_order(self):
@@ -333,7 +442,23 @@ class CommsFlowApp:
     def count_test_id(self, test_id):
         return len(self.driver.find_elements(By.CSS_SELECTOR, self.selector(test_id)))
 
+    def track_alert_calls(self):
+        self.driver.execute_script(
+            "window.__commsflowAlerts = []; window.alert = (message) => window.__commsflowAlerts.push(message || '');"
+        )
+
+    def expect_no_script_payload_executed(self):
+        assert self.count_css("[onerror], [onload]") == 0
+        alert_count = self.driver.execute_script("return window.__commsflowAlerts ? window.__commsflowAlerts.length : 0;")
+        assert alert_count == 0
+
+    def count_css(self, selector):
+        return len(self.driver.find_elements(By.CSS_SELECTOR, selector))
+
     @staticmethod
     def selector(test_id):
         return f"[data-testid='{test_id}']"
 
+    @staticmethod
+    def slugify(value):
+        return re.sub(r"(^-|-$)", "", re.sub(r"[^a-z0-9]+", "-", value.lower()))

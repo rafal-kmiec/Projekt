@@ -131,12 +131,27 @@ function routeFromPath(pathname: string): Route {
   return validRoutes.includes(route as Route) ? route as Route : "/dashboard";
 }
 
+function normalizeUser(user: unknown): ActiveUser | null {
+  if (!user || typeof user !== "object" || !("username" in user)) {
+    return null;
+  }
+
+  const username = (user as { username?: string }).username;
+  if (username !== "comms_manager" && username !== "compliance_reviewer") {
+    return null;
+  }
+
+  const account = users[username];
+  return { username, role: account.role, permissions: account.permissions };
+}
+
 function loadState(): AppState {
   try {
     const storedState = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "{}") as Partial<AppState>;
     return {
       ...defaultState,
       ...storedState,
+      user: normalizeUser(storedState.user),
       templates: storedState.templates ?? [],
       campaigns: storedState.campaigns ?? [],
       archive: storedState.archive ?? [],

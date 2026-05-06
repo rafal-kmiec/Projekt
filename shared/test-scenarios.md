@@ -44,6 +44,20 @@
 - Customers page shows policy numbers and preferred channels for all demo customers.
 - Inbox shows an empty state for future inbound messages.
 
+## Security Regression
+
+- Logged-out users cannot open Dashboard, Templates, Campaigns, or Archive by direct URL.
+- Direct route access after logout returns the user to Login.
+- Corrupted `localStorage` state falls back to a safe login/default state.
+- Unknown users injected into `localStorage` do not receive authenticated access.
+- Tampered manager permissions in `localStorage` are replaced with canonical account permissions.
+- Managers cannot approve pending templates even if restricted controls are probed.
+- Reviewers cannot create templates or send campaigns.
+- User-controlled template and campaign names render as text instead of executable markup.
+- Archive search payloads do not inject DOM nodes or execute scripts.
+- Authenticated pages and persisted state do not expose demo passwords.
+- Blocked actions do not create approved templates, sent campaigns, or archive evidence.
+
 ## Future E2E
 
 - Receive an inbound customer response and assign it to a team.
