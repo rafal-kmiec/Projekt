@@ -22,15 +22,19 @@ type TemplateStatus = "Draft" | "Pending Approval" | "Approved";
 type CampaignStatus = "Sent";
 type Channel = "Email" | "SMS" | "Portal" | "Print";
 
+type Permission = "create_template" | "submit_template" | "approve_template" | "send_campaign";
+
 type Account = {
   password: string;
   role: UserRole;
   home: Route;
+  permissions: Permission[];
 };
 
 type ActiveUser = {
   username: Username;
   role: UserRole;
+  permissions: Permission[];
 };
 
 type Customer = {
@@ -81,12 +85,14 @@ const users: Record<Username, Account> = {
   comms_manager: {
     password: "commsflow123",
     role: "Comms Manager",
-    home: "/dashboard"
+    home: "/dashboard",
+    permissions: ["create_template", "submit_template", "send_campaign"]
   },
   compliance_reviewer: {
     password: "commsflow123",
     role: "Compliance Reviewer",
-    home: "/templates"
+    home: "/templates",
+    permissions: ["approve_template"]
   }
 };
 
@@ -200,6 +206,7 @@ function Topbar({ user, navigate, logout }: { user: ActiveUser; navigate: Naviga
       </div>
       <div className="user-block">
         <span data-testid="current-user">{user.role}</span>
+        <span className="permission-count" data-testid="current-permissions">{user.permissions.length} permissions</span>
         <button data-testid="logout-button" type="button" onClick={logout}><LogOut size={17} /> Logout</button>
       </div>
     </nav>
@@ -219,7 +226,7 @@ function LoginPage({ state, updateState, navigate }: { state: AppState; updateSt
       return;
     }
 
-    const nextUser: ActiveUser = { username: username as Username, role: account.role };
+    const nextUser: ActiveUser = { username: username as Username, role: account.role, permissions: account.permissions };
     updateState({ ...state, user: nextUser, audit: [`${account.role} signed in`, ...state.audit] });
     navigate(account.home);
   }
@@ -306,8 +313,9 @@ function CustomersPage() {
 
 function TemplatesPage({ state, updateState }: { state: AppState; updateState: UpdateState }) {
   const [name, setName] = useState("Policy Renewal Notice");
-  const isManager = state.user?.username === "comms_manager";
-  const isReviewer = state.user?.username === "compliance_reviewer";
+  const canCreateTemplate = state.user?.permissions.includes("create_template") ?? false;
+  const canSubmitTemplate = state.user?.permissions.includes("submit_template") ?? false;
+  const canApproveTemplate = state.user?.permissions.includes("approve_template") ?? false;
 
   function createTemplate(event: FormEvent<HTMLFormElement>): void {
     event.preventDefault();
@@ -334,7 +342,7 @@ function TemplatesPage({ state, updateState }: { state: AppState; updateState: U
   return (
     <section className="workspace" data-testid="templates-page">
       <PageHeader eyebrow="Composer" title="Templates" text="Draft notices, submit them for review, and capture compliance approval." />
-      {isManager ? (
+      {canCreateTemplate ? (
         <form className="panel inline-form" data-testid="template-form" onSubmit={createTemplate}>
           <label>
             Template name
@@ -342,7 +350,12 @@ function TemplatesPage({ state, updateState }: { state: AppState; updateState: U
           </label>
           <button className="primary-action" data-testid="template-create-button" type="submit">Create template</button>
         </form>
-      ) : null}
+      ) : (
+        <section className="panel permission-note" data-testid="template-permission-note">
+          <h2>Template creation restricted</h2>
+          <p className="muted">Only Comms Managers can create and submit new customer communication templates.</p>
+        </section>
+      )}
       <div className="card-grid" data-testid="template-list">
         {state.templates.map((template) => (
           <article className="panel record-card" data-testid={`template-card-${template.id}`} key={template.id}>
@@ -352,11 +365,14 @@ function TemplatesPage({ state, updateState }: { state: AppState; updateState: U
               <p className="muted">Owner: {template.owner}</p>
             </div>
             <StatusBadge status={template.status} testId={`template-status-${template.id}`} />
-            {isManager && template.status === "Draft" ? (
+            {canSubmitTemplate && template.status === "Draft" ? (
               <button data-testid={`submit-template-${template.id}`} type="button" onClick={() => setTemplateStatus(template, "Pending Approval")}>Submit for approval</button>
             ) : null}
-            {isReviewer && template.status === "Pending Approval" ? (
+            {canApproveTemplate && template.status === "Pending Approval" ? (
               <button className="primary-action" data-testid={`approve-template-${template.id}`} type="button" onClick={() => setTemplateStatus(template, "Approved")}>Approve template</button>
+            ) : null}
+            {!canApproveTemplate && template.status === "Pending Approval" ? (
+              <p className="permission-note-inline" data-testid={`manager-approval-blocked-${template.id}`}>Approval is restricted to Compliance Reviewers.</p>
             ) : null}
           </article>
         ))}
@@ -366,6 +382,7 @@ function TemplatesPage({ state, updateState }: { state: AppState; updateState: U
 }
 
 function CampaignsPage({ state, updateState }: { state: AppState; updateState: UpdateState }) {
+  const canSendCampaign = state.user?.permissions.includes("send_campaign") ?? false;
   const approvedTemplates = state.templates.filter((template) => template.status === "Approved");
   const [name, setName] = useState("Policy Renewal May 2026");
   const [templateId, setTemplateId] = useState(approvedTemplates[0]?.id ?? "");
@@ -424,7 +441,9 @@ function CampaignsPage({ state, updateState }: { state: AppState; updateState: U
             </label>
           ))}
         </div>
-        <button className="primary-action" data-testid="campaign-send-button" disabled={!templateId} type="submit">Send campaign</button>
+        {!approvedTemplates.length ? <p className="error" data-testid="campaign-no-template-warning">An approved template is required before a campaign can be sent.</p> : null}
+        {!canSendCampaign ? <p className="error" data-testid="campaign-permission-warning">Only Comms Managers can send campaigns.</p> : null}
+        <button className="primary-action" data-testid="campaign-send-button" disabled={!templateId || !canSendCampaign} type="submit">Send campaign</button>
       </form>
       <CampaignList campaigns={state.campaigns} />
     </section>
@@ -456,23 +475,36 @@ function InboxPage() {
 }
 
 function ArchivePage({ state }: { state: AppState }) {
+  const [search, setSearch] = useState("");
+  const filteredArchive = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    if (!query) {
+      return state.archive;
+    }
+    return state.archive.filter((record) => [record.customer, record.policy, record.campaign, record.channel, record.status].some((value) => value.toLowerCase().includes(query)));
+  }, [search, state.archive]);
   const recordsByChannel = useMemo(() => {
-    return state.archive.reduce<Partial<Record<Channel, number>>>((summary, record) => ({ ...summary, [record.channel]: (summary[record.channel] ?? 0) + 1 }), {});
-  }, [state.archive]);
+    return filteredArchive.reduce<Partial<Record<Channel, number>>>((summary, record) => ({ ...summary, [record.channel]: (summary[record.channel] ?? 0) + 1 }), {});
+  }, [filteredArchive]);
 
   return (
     <section className="workspace" data-testid="archive-page">
       <PageHeader eyebrow="Archive" title="Communication archive" text="Searchable evidence of what was sent, to whom, through which channel, and why." />
+      <label className="archive-search">
+        Search archive
+        <input data-testid="archive-search-input" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Customer, policy, campaign, channel" />
+      </label>
       <div className="channel-summary" data-testid="channel-summary">
         {Object.entries(recordsByChannel).map(([channel, count]) => <span key={channel}>{channel}: {count}</span>)}
       </div>
       <div className="table panel" data-testid="archive-records">
         <div className="table-row table-head"><span>Customer</span><span>Policy</span><span>Campaign</span><span>Channel</span><span>Status</span></div>
-        {state.archive.map((record) => (
+        {filteredArchive.map((record) => (
           <div className="table-row" data-testid={`archive-record-${slugify(record.customer)}`} key={record.id}>
             <span>{record.customer}</span><span>{record.policy}</span><span>{record.campaign}</span><span>{record.channel}</span><span>{record.status}</span>
           </div>
         ))}
+        {!filteredArchive.length ? <div className="table-row archive-empty" data-testid="archive-empty-state"><span>No archive records match the current search.</span></div> : null}
       </div>
     </section>
   );
@@ -510,3 +542,4 @@ if (!rootElement) {
 }
 
 createRoot(rootElement).render(<App />);
+

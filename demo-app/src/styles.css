@@ -408,3 +408,32 @@ ol {
     min-width: 760px;
   }
 }
+.permission-count {
+  color: #315f72;
+}
+
+.permission-note {
+  margin-bottom: 18px;
+  max-width: 760px;
+}
+
+.permission-note-inline {
+  background: #fff6db;
+  border: 1px solid #efd18b;
+  border-radius: 8px;
+  color: #7a5600;
+  font-weight: 800;
+  margin: 0;
+  padding: 10px 12px;
+}
+
+.archive-search {
+  margin-bottom: 14px;
+  max-width: 520px;
+}
+
+.archive-empty {
+  color: #667085;
+  grid-template-columns: 1fr;
+}
+

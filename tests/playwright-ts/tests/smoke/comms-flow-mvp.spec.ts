@@ -22,6 +22,8 @@ test("regulated communication approval and send flow", async ({ page }) => {
   await app.sendPolicyRenewalCampaign();
   await app.openArchive();
   await app.expectArchiveEvidence();
+  await app.expectArchiveSearchWorks();
   await app.openDashboard();
   await app.expectDashboardEvidence();
 });
+

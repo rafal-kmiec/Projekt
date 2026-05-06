@@ -23,5 +23,7 @@ def test_regulated_communication_approval_and_send_flow(driver, base_url):
     app.send_policy_renewal_campaign()
     app.open_archive()
     app.expect_archive_evidence()
+    app.expect_archive_search_works()
     app.open_dashboard()
     app.expect_dashboard_evidence()
+

@@ -28,3 +28,10 @@ The demo app exposes stable `data-testid` attributes for all elements used by au
 - `archive-record-avery-brooks`
 - `nav-dashboard`
 - `metric-sent-campaigns`
+- `login-error`
+- `template-permission-note`
+- `manager-approval-blocked-policy-renewal-notice`
+- `campaign-no-template-warning`
+- `archive-search-input`
+- `archive-empty-state`
+

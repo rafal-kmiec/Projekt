@@ -21,10 +21,15 @@ class CommsFlowApp:
         self.wait_for_test_id("login-page")
         return self
 
-    def login_as(self, username):
+    def login_as(self, username, password="commsflow123"):
         self.type_by_test_id("username-input", username)
-        self.type_by_test_id("password-input", "commsflow123")
+        self.type_by_test_id("password-input", password)
         self.click_by_test_id("login-submit")
+        return self
+
+    def expect_invalid_login_error(self):
+        assert "Invalid credentials" in self.find_by_test_id("login-error").text
+        assert self.find_by_test_id("login-page").is_displayed()
         return self
 
     def logout(self):
@@ -48,6 +53,16 @@ class CommsFlowApp:
         self.wait_for_text("template-status-policy-renewal-notice", "Pending Approval")
         return self
 
+    def expect_manager_cannot_approve_pending_template(self):
+        assert "Approval is restricted" in self.find_by_test_id("manager-approval-blocked-policy-renewal-notice").text
+        assert not self.has_test_id("approve-template-policy-renewal-notice")
+        return self
+
+    def expect_reviewer_cannot_create_template(self):
+        assert "Template creation restricted" in self.find_by_test_id("template-permission-note").text
+        assert not self.has_test_id("template-form")
+        return self
+
     def approve_template(self):
         self.click_by_test_id("approve-template-policy-renewal-notice")
         self.wait_for_text("template-status-policy-renewal-notice", "Approved")
@@ -56,6 +71,11 @@ class CommsFlowApp:
     def open_campaigns(self):
         self.click_by_test_id("nav-campaigns")
         self.wait_for_test_id("campaigns-page")
+        return self
+
+    def expect_campaign_requires_approved_template(self):
+        assert "approved template is required" in self.find_by_test_id("campaign-no-template-warning").text
+        assert self.find_by_test_id("campaign-send-button").get_attribute("disabled") is not None
         return self
 
     def send_policy_renewal_campaign(self):
@@ -75,6 +95,14 @@ class CommsFlowApp:
         assert "SMS" in self.find_by_test_id("archive-record-maya-chen").text
         assert "Portal" in self.find_by_test_id("archive-record-nora-singh").text
         assert "Print" in self.find_by_test_id("archive-record-elliot-ward").text
+        return self
+
+    def expect_archive_search_works(self):
+        self.type_by_test_id("archive-search-input", "Maya")
+        assert self.find_by_test_id("archive-record-maya-chen").is_displayed()
+        assert not self.has_test_id("archive-record-avery-brooks")
+        self.type_by_test_id("archive-search-input", "FAX")
+        assert "No archive records" in self.find_by_test_id("archive-empty-state").text
         return self
 
     def open_dashboard(self):
@@ -106,6 +134,10 @@ class CommsFlowApp:
     def wait_for_text(self, test_id, text):
         self.wait.until(EC.text_to_be_present_in_element((By.CSS_SELECTOR, self.selector(test_id)), text))
 
+    def has_test_id(self, test_id):
+        return bool(self.driver.find_elements(By.CSS_SELECTOR, self.selector(test_id)))
+
     @staticmethod
     def selector(test_id):
         return f"[data-testid='{test_id}']"
+
